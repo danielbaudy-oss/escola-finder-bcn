@@ -639,13 +639,7 @@ async function geocodeAddress(){
           className:'',iconSize:[28,28],iconAnchor:[14,14]
         })
       }).addTo(miniMap);
-      schools.forEach(function(s){
-        var dist=haversineKm(userLat,userLng,s.lat,s.lng);
-        if(dist<3) L.circleMarker([s.lat,s.lng],{radius:6,fillColor:'#2563eb',color:'#fff',weight:2,fillOpacity:0.8}).bindPopup('<b>'+s.name+'</b><br>'+Math.round(dist*1000)+'m').addTo(miniMap);
-      });
-      var bounds=L.latLngBounds([[userLat,userLng]]);
-      schools.forEach(function(s){if(haversineKm(userLat,userLng,s.lat,s.lng)<2.5) bounds.extend([s.lat,s.lng]);});
-      miniMap.fitBounds(bounds.pad(0.1));
+      miniMap.setView([userLat,userLng],17);
     } else { status.className='geocode-status error'; status.textContent=t('geocode_error'); }
   } catch(e){ status.className='geocode-status error'; status.textContent=t('geocode_error'); }
 }
