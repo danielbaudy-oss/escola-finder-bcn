@@ -495,6 +495,8 @@ var i18n = {
     restart_btn:"🔄 Start Over", match:"match", walk:"walk",
     details_show:"Show details ▾", details_hide:"Hide details ▴",
     no_location:"Add your address for distance info",
+    same_district_pts:"✅ Same district (30 pts)",
+    diff_district_pts:"⚠️ Different district (0 pts)",
     same_district:"✅ Same district", diff_district:"⚠️ Different district",
     likely_30:"30 pts (same district)", likely_0:"0 pts (different district)",
     show_more:"Show all schools →",
@@ -536,6 +538,8 @@ var i18n = {
     restart_btn:"🔄 Empezar de Nuevo", match:"compatibilidad", walk:"a pie",
     details_show:"Ver detalles ▾", details_hide:"Ocultar ▴",
     no_location:"Añade tu dirección para distancias",
+    same_district_pts:"✅ Mismo distrito (30 pts)",
+    diff_district_pts:"⚠️ Distrito diferente (0 pts)",
     same_district:"✅ Mismo distrito", diff_district:"⚠️ Distrito diferente",
     likely_30:"30 pts (mismo distrito)", likely_0:"0 pts (distrito diferente)",
     show_more:"Mostrar todas las escuelas →",
@@ -573,6 +577,8 @@ var i18n = {
     restart_btn:"🔄 Tornar a Començar", match:"compatibilitat", walk:"a peu",
     details_show:"Veure detalls ▾", details_hide:"Amagar ▴",
     no_location:"Afegeix adreça per distàncies",
+    same_district_pts:"✅ Mateix districte (30 pts)",
+    diff_district_pts:"⚠️ Districte diferent (0 pts)",
     same_district:"✅ Mateix districte", diff_district:"⚠️ Districte diferent",
     likely_30:"30 pts (mateix districte)", likely_0:"0 pts (districte diferent)",
     show_more:"Mostrar totes les escoles →",
@@ -866,9 +872,9 @@ function renderResults(){
 
     if(userDistrict){
       if(r.sameDistrict){
-        tags+='<span class="tag tag-green">'+t('same_district')+'</span>';
+        tags+='<span class="tag tag-green">'+t('same_district_pts')+'</span>';
       } else {
-        tags+='<span class="tag tag-yellow">'+t('diff_district')+'</span>';
+        tags+='<span class="tag tag-yellow">'+t('diff_district_pts')+'</span>';
       }
     }
 
@@ -876,8 +882,7 @@ function renderResults(){
       ?'<span>📏 '+Math.round(r.distKm*1000)+'m · ~'+r.walkMin+' min '+t('walk')+'</span>'
       :'<span style="color:var(--gray-400)">📍 '+t('no_location')+'</span>';
 
-    var proxHtml=r.proxPts!==null
-      ?'<span class="proximity-badge '+getProximityClass(r.proxPts)+'">'+getProximityLabel(r.proxPts)+'</span>':'';
+        var proxHtml='';
 
     var pedPct=(r.school.pedagogy/5)*100;
     var pedBar='<div class="pedagogy-bar"><span class="pedagogy-label">📚</span><div class="pedagogy-bar-track"><div class="pedagogy-bar-fill" style="width:'+pedPct+'%"></div></div><span class="pedagogy-label">🌱</span></div>';
