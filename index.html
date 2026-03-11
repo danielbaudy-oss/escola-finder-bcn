@@ -324,6 +324,10 @@
       <h1 data-i18n="results_title">🎉 Your School Matches</h1>
       <p data-i18n="results_subtitle">Based on your preferences — district proximity always prioritized.</p>
     </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+      <button class="btn btn-outline btn-sm" onclick="restart()" data-i18n="restart_btn" style="width:auto;">🔄 Start Over</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="width:auto;">↑ Top</button>
+    </div>
     <div id="results-map"></div>
     <div id="results-list"></div>
     <div style="text-align:center; margin-top:1.5rem;">
@@ -726,11 +730,8 @@ function renderQuestion(){
 
 function selectOption(qId,value){
   answers[qId]=value; renderQuestion();
-  setTimeout(function(){
-    if(currentQuestion<questions.length-1){ nextQuestion(); }
-    else { calculateAndShowResults(); }
-  },400);
 }
+
 function nextQuestion(){
   if(answers[questions[currentQuestion].id]===undefined) return;
   if(currentQuestion<questions.length-1){currentQuestion++;renderQuestion();}
