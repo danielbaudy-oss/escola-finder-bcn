@@ -731,12 +731,16 @@ function scoreSchool(school){
   var w2=30; maxScore+=w2;
   if(userLat&&userLng){
     var ds=0;
-    if(sameDistrict){ ds+=w2*0.5; } else { ds+=1; }
+    if(sameDistrict){ ds+=w2*0.4; } else { ds+=1; }
     if(answers.distance_pref==='close'){
       if(walkMin<=10) ds+=w2*0.5; else if(walkMin<=15) ds+=w2*0.3; else if(walkMin<=20) ds+=w2*0.15; else ds+=1;
     } else if(answers.distance_pref==='medium'){
-      if(walkMin<=20) ds+=w2*0.5; else if(walkMin<=30) ds+=w2*0.25; else ds+=2;
-    } else { ds+=w2*0.25; }
+      if(walkMin<=20) ds+=w2*0.45; else if(walkMin<=30) ds+=w2*0.25; else ds+=2;
+    } else {
+      if(walkMin<=15) ds+=w2*0.2; else if(walkMin<=30) ds+=w2*0.15; else ds+=w2*0.1;
+    }
+    var proxBonus = Math.max(0, w2*0.1*(1 - distKm/5));
+    ds+=proxBonus;
     score+=Math.min(ds,w2); breakdown.distance=Math.min(ds,w2);
   } else { score+=w2*0.5; breakdown.distance=w2*0.5; }
 
