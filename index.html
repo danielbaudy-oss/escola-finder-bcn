@@ -750,6 +750,8 @@ function scoreSchool(school){
   score+=pedScore; breakdown.pedagogy=pedScore;
 
   var w2=30; maxScore+=w2;
+  var proxBonusMax=10;
+  maxScore+=proxBonusMax;
   if(userLat&&userLng){
     var ds=0;
     if(sameDistrict){ ds+=w2*0.5; } else { ds+=1; }
@@ -758,13 +760,13 @@ function scoreSchool(school){
     } else if(answers.distance_pref==='medium'){
       if(walkMin<=20) ds+=w2*0.5; else if(walkMin<=30) ds+=w2*0.25; else ds+=2;
     } else { ds+=w2*0.25; }
-        var proxFade, proxWeight;
-    if(answers.distance_pref==='close'){ proxWeight=0.5; proxFade=1.5; }
-    else if(answers.distance_pref==='medium'){ proxWeight=0.2; proxFade=3; }
-    else { proxWeight=0.05; proxFade=5; }
-    var proxBonus = Math.max(0, w2 * proxWeight * (1 - distKm/proxFade));
-    ds+=proxBonus;
     score+=Math.min(ds,w2); breakdown.distance=Math.min(ds,w2);
+    var proxFade, proxScale;
+    if(answers.distance_pref==='close'){ proxScale=1; proxFade=1.5; }
+    else if(answers.distance_pref==='medium'){ proxScale=0.5; proxFade=3; }
+    else { proxScale=0.15; proxFade=5; }
+    var proxBonus=Math.max(0, proxBonusMax * proxScale * (1 - distKm/proxFade));
+    score+=proxBonus; breakdown.proximity=proxBonus;
   } else { score+=w2*0.5; breakdown.distance=w2*0.5; }
 
   var w4=15; maxScore+=w4;
