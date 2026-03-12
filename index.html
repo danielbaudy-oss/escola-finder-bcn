@@ -423,39 +423,55 @@ var FALLBACK_SCHOOLS = [
   { id:"08064179", name:"Escola La Llacuna del Poblenou", address:"Carrer de Pallars 207, 08005 Barcelona", district:"Sant Martí", lat:41.40187, lng:2.19819, pedagogy:4, facilities:3, outdoor:3, arts:2, website:"https://agora.xtec.cat/escolalallacuna/", notes_en:"Near Llacuna metro. Standard Catalan curriculum.", notes_es:"Cerca del metro Llacuna. Currículum catalán estándar.", notes_ca:"A prop del metro Llacuna. Currículum català estàndard." }
 ];
 
-// ========== EDUBCN API ==========
+// ========== EDUBCN API WITH PROXY FALLBACKS ==========
 
+var CORS_PROXIES = [
+  function(url) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url); },
+  function(url) { return 'https://corsproxy.org/?' + encodeURIComponent(url); },
+  function(url) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url); }
+];
+
+// If you set up a Cloudflare Worker, put its URL here and it will be tried first:
+var CUSTOM_PROXY = 'https://edubcn-proxy.yourusername.workers.dev';var CUSTOM_PROXY = 'https://edubcn-proxy.yourusername.workers.dev';
 async function edubcnFetch(path) {
   var url = EDUBCN_BASE + path;
+
+  // Try direct first (won't work from browser, but costs nothing to try)
   try {
-    var resp = await fetch(url);
+    var resp = await fetch(url, { signal: AbortSignal.timeout(3000) });
     if (resp.ok) return await resp.json();
-  } catch(e) { /* CORS blocked, try proxy */ }
-  var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-  var resp2 = await fetch(proxyUrl);
-  if (resp2.ok) return await resp2.json();
-  throw new Error('edubcn API unreachable');
-}
+  } catch(e) { /* expected CORS block */ }
 
-async function searchStreets(query) {
-  if (!query || query.length < 3) return [];
-  return await edubcnFetch('/carrers/' + encodeURIComponent(query.toLowerCase()));
-}
+  // Try custom proxy first if configured
+  if (CUSTOM_PROXY) {
+    try {
+      var resp2 = await fetch(CUSTOM_PROXY + path, { signal: AbortSignal.timeout(5000) });
+      if (resp2.ok) return await resp2.json();
+    } catch(e) { console.warn('Custom proxy failed:', e.message); }
+  }
 
-async function lookupManzana(streetCode, number) {
-  var data = await edubcnFetch('/illes/' + streetCode + '/' + number);
-  if (data && data.length > 0) return data[0].CODI_ILLA;
-  return null;
-}
+  // Try free CORS proxies in order
+  for (var i = 0; i < CORS_PROXIES.length; i++) {
+    try {
+      var proxyUrl = CORS_PROXIES[i](url);
+      var resp3 = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
+      if (resp3.ok) {
+        var text = await resp3.text();
+        // Some proxies wrap the response — handle both cases
+        try { return JSON.parse(text); }
+        catch(e) {
+          // allorigins sometimes returns the raw response
+          if (text.startsWith('[') || text.startsWith('{')) return JSON.parse(text);
+          throw new Error('Invalid JSON from proxy');
+        }
+      }
+    } catch(e) {
+      console.warn('Proxy ' + (i+1) + ' failed:', e.message);
+      continue;
+    }
+  }
 
-async function lookupCentres(manzanaCode) {
-  return await edubcnFetch('/centres/' + manzanaCode);
-}
-
-function normalizeSchoolCode(code) {
-  code = code.toString().trim();
-  while (code.length < 8) code = '0' + code;
-  return code;
+  throw new Error('All proxies failed — edubcn API unreachable');
 }
 
 // ========== SCHOOL DATA ==========
