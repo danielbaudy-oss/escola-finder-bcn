@@ -87,14 +87,66 @@
   }
   .location-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.15rem; }
   .location-card .subtitle { font-size: 0.8rem; color: var(--gray-400); margin-bottom: 0.75rem; }
-  .input-group { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem; }
-  .input-group input {
+
+  /* Street autocomplete */
+  .street-input-wrap { position: relative; margin-bottom: 0.5rem; }
+  .street-input-wrap input {
     width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--gray-200);
     border-radius: var(--radius-sm); font-size: 1rem; outline: none;
     transition: border-color 0.2s;
   }
-  .input-group input:focus { border-color: var(--primary); }
-  .input-group input::placeholder { color: var(--gray-400); }
+  .street-input-wrap input:focus { border-color: var(--primary); }
+  .street-input-wrap input::placeholder { color: var(--gray-400); }
+  .autocomplete-dropdown {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: white; border: 2px solid var(--gray-200); border-top: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    max-height: 200px; overflow-y: auto; z-index: 100; display: none;
+    box-shadow: var(--shadow-lg);
+  }
+  .autocomplete-dropdown.open { display: block; }
+  .autocomplete-item {
+    padding: 0.65rem 1rem; cursor: pointer; font-size: 0.9rem;
+    border-bottom: 1px solid var(--gray-100); transition: background 0.1s;
+  }
+  .autocomplete-item:hover, .autocomplete-item:active { background: var(--primary-light); }
+  .autocomplete-item .street-short { font-weight: 600; color: var(--gray-800); }
+  .autocomplete-item .street-full { font-size: 0.78rem; color: var(--gray-500); display: block; }
+
+  .number-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .number-row input {
+    flex: 1; padding: 0.75rem 1rem; border: 2px solid var(--gray-200);
+    border-radius: var(--radius-sm); font-size: 1rem; outline: none;
+    transition: border-color 0.2s;
+  }
+  .number-row input:focus { border-color: var(--primary); }
+  .number-row input::placeholder { color: var(--gray-400); }
+
+  .selected-street {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 0.9rem; background: var(--primary-light);
+    border-radius: var(--radius-sm); margin-bottom: 0.5rem;
+    font-size: 0.88rem; font-weight: 600; color: var(--primary-dark);
+  }
+  .selected-street .clear-street {
+    margin-left: auto; background: none; border: none;
+    color: var(--gray-400); cursor: pointer; font-size: 1.1rem;
+    padding: 0 0.25rem; line-height: 1;
+  }
+  .selected-street .clear-street:hover { color: var(--danger); }
+
+  .catchment-summary {
+    background: var(--success-light); border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem; margin-bottom: 0.75rem; display: none;
+  }
+  .catchment-summary.visible { display: block; }
+  .catchment-summary .catchment-title {
+    font-weight: 700; color: #065f46; font-size: 0.9rem; margin-bottom: 0.25rem;
+  }
+  .catchment-summary .catchment-detail {
+    font-size: 0.8rem; color: #065f46; line-height: 1.5;
+  }
+
   .geocode-status {
     font-size: 0.8rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);
     margin-bottom: 0.75rem; display: none;
@@ -109,12 +161,10 @@
     justify-content: center; gap: 0.5rem; width: 100%;
     -webkit-appearance: none;
   }
-
   .btn.btn-primary:disabled {
     background: var(--gray-200) !important; color: var(--gray-400) !important;
     cursor: not-allowed; transform: none; pointer-events: none;
   }
-
   .btn-primary { background: var(--primary); color: white; }
   .btn-primary:hover { background: var(--primary-dark); }
   .btn-primary:active { transform: scale(0.98); }
@@ -182,6 +232,7 @@
     display: grid; grid-template-columns: 40px 1fr 56px; gap: 0.75rem;
     align-items: start; border: 1px solid var(--gray-100);
   }
+  .school-card.is-catchment { border-left: 4px solid var(--success); }
   .school-card:active { box-shadow: var(--shadow-lg); }
   .school-rank {
     width: 40px; height: 40px; border-radius: 50%;
@@ -216,13 +267,6 @@
   .pedagogy-bar-track { flex: 1; height: 5px; background: var(--gray-200); border-radius: 100px; max-width: 100px; }
   .pedagogy-bar-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--primary), var(--success)); }
   .pedagogy-label { color: var(--gray-400); font-size: 0.65rem; white-space: nowrap; }
-  .proximity-badge {
-    display: inline-flex; align-items: center; gap: 0.2rem;
-    padding: 0.2rem 0.5rem; border-radius: 100px;
-    font-size: 0.7rem; font-weight: 700;
-  }
-  .prox-30 { background: #d1fae5; color: #065f46; }
-  .prox-0 { background: var(--gray-100); color: var(--gray-500); }
   .school-details {
     display: none; margin-top: 0.6rem; padding-top: 0.6rem;
     border-top: 1px solid var(--gray-100); font-size: 0.82rem;
@@ -245,6 +289,12 @@
   .data-source-badge { text-align: center; margin: 0.5rem 0; font-size: 0.7rem; color: var(--gray-400); }
   .data-source-badge .live { color: var(--success); font-weight: 600; }
   .data-source-badge .offline { color: var(--accent); font-weight: 600; }
+  .catchment-note {
+    text-align: center; font-size: 0.78rem; color: var(--gray-500);
+    margin-bottom: 1rem; padding: 0.6rem 1rem;
+    background: var(--success-light); border-radius: var(--radius-sm);
+  }
+  .catchment-note a { color: #065f46; }
   footer {
     text-align: center; padding: 1.5rem 1rem; color: var(--gray-400);
     font-size: 0.75rem; border-top: 1px solid var(--gray-100); margin-top: 2rem;
@@ -256,8 +306,6 @@
     .hero h1 { font-size: 2rem; }
     .hero p { font-size: 1.1rem; }
     .location-card { padding: 2rem; max-width: 550px; }
-    .input-group { flex-direction: row; }
-    .input-group .btn { width: auto; }
     .question-card { padding: 2rem; }
     .question-card h2 { font-size: 1.3rem; }
     .option-btn { padding: 1rem 1.25rem; }
@@ -293,16 +341,36 @@
       <p data-i18n="welcome_subtitle">Answer a few questions and discover which public schools (P3–6th grade) in Barcelona match your family best.</p>
     </div>
     <div class="location-card">
-      <h3 data-i18n="location_title">📍 Your Location</h3>
-      <p class="subtitle" data-i18n="location_subtitle">Enter your address to see nearby schools and estimate proximity points for the lottery.</p>
-      <div class="input-group">
-        <input type="text" id="address-input" data-i18n-placeholder="address_placeholder" placeholder="e.g. Pujades 181, Barcelona">
-        <button class="btn btn-primary btn-sm" onclick="geocodeAddress()"><span data-i18n="search_btn">Search</span></button>
+      <h3 data-i18n="location_title">📍 Your Address</h3>
+      <p class="subtitle" data-i18n="location_subtitle">Enter your street and number to see which schools give you the maximum 30 proximity points.</p>
+
+      <!-- Street autocomplete -->
+      <div id="street-selection" class="street-input-wrap">
+        <input type="text" id="street-input" data-i18n-placeholder="street_placeholder" placeholder="Type your street name..." autocomplete="off">
+        <div id="street-dropdown" class="autocomplete-dropdown"></div>
       </div>
+
+      <!-- Selected street display -->
+      <div id="selected-street-display" class="selected-street" style="display:none;">
+        <span>📍 <span id="selected-street-name"></span></span>
+        <button class="clear-street" onclick="clearStreet()" title="Change street">✕</button>
+      </div>
+
+      <!-- Number + search -->
+      <div id="number-row" class="number-row" style="display:none;">
+        <input type="text" id="number-input" data-i18n-placeholder="number_placeholder" placeholder="House number (e.g. 181)" inputmode="numeric">
+        <button class="btn btn-primary btn-sm" onclick="lookupCatchment()" id="search-btn"><span data-i18n="search_btn">Search</span></button>
+      </div>
+
       <div id="geocode-status" class="geocode-status"></div>
+
+      <!-- Catchment results summary -->
+      <div id="catchment-summary" class="catchment-summary"></div>
+
       <div id="minimap"></div>
       <div id="data-source" class="data-source-badge"></div>
-      <button class="btn btn-primary" onclick="goToQuiz()" id="start-btn" disabled data-i18n="start_quiz">Start School-O-Mat →</button>      <div class="skip-link" onclick="skipLocation()" data-i18n="skip_location">Skip location — show all schools</div>
+      <button class="btn btn-primary" onclick="goToQuiz()" id="start-btn" disabled data-i18n="start_quiz">Start School-O-Mat →</button>
+      <div class="skip-link" onclick="skipLocation()" data-i18n="skip_location">Skip location — show all schools</div>
     </div>
   </div>
 </div>
@@ -322,15 +390,16 @@
   <div class="container">
     <div class="results-header">
       <h1 data-i18n="results_title">🎉 Your School Matches</h1>
-      <p data-i18n="results_subtitle">Based on your preferences — district proximity always prioritized.</p>
+      <p data-i18n="results_subtitle">Based on your preferences — official proximity points from edubcn.cat.</p>
     </div>
+    <div id="catchment-results-note" class="catchment-note" style="display:none;"></div>
     <div id="results-map"></div>
     <div id="results-list"></div>
     <div style="text-align:center; margin-top:1.5rem;">
       <button class="btn btn-outline" onclick="restart()" data-i18n="restart_btn" style="width:auto;">🔄 Start Over</button>
     </div>
     <footer>
-      <p>Informational only. Check official zones at <a href="https://mapaescolar.gencat.cat" target="_blank">mapaescolar.gencat.cat</a></p>
+      <p>Informational only. Check official zones at <a href="https://www.edubcn.cat/es/alumnado_y_familia/informacion_general_matriculacion/areas_influencia/consulta_de_centros_educativos" target="_blank">edubcn.cat</a></p>
       <p style="margin-top:0.5rem;">Made with ❤️ for Barcelona parents · School-O-Mat</p>
     </footer>
   </div>
@@ -347,48 +416,49 @@ var SHEET_CSV_URL = window.location.protocol === 'file:'
   ? 'https://corsproxy.io/?' + encodeURIComponent(SHEET_RAW_URL) + '&_=' + Date.now()
   : SHEET_RAW_URL + '&_=' + Date.now();
 
+var EDUBCN_BASE = 'https://www.edubcn.cat/atp_rest';
+
 var FALLBACK_SCHOOLS = [
-  { id:"08035431", name:"Escola Bogatell", address:"Carrer de Ramon Turró 74, 08005 Barcelona", district:"Sant Martí", lat:41.39346, lng:2.19452, pedagogy:3, facilities:3, outdoor:3, arts:2, website:"http://www.escolabogatell.cat", notes_en:"Central Poblenou on Ramon Turró. Near Bogatell beach.", notes_es:"Ubicación céntrica en Poblenou en Ramon Turró.", notes_ca:"Ubicació cèntrica al Poblenou a Ramon Turró." },
+  { id:"08035431", name:"Escola Bogatell", address:"Carrer de Ramon Turró 74, 08005 Barcelona", district:"Sant Martí", lat:41.39346, lng:2.19452, pedagogy:3, facilities:3.5, outdoor:3, arts:2, website:"http://www.escolabogatell.cat", notes_en:"Central Poblenou on Ramon Turró. Near Bogatell beach.", notes_es:"Ubicación céntrica en Poblenou en Ramon Turró.", notes_ca:"Ubicació cèntrica al Poblenou a Ramon Turró." },
   { id:"08064179", name:"Escola La Llacuna del Poblenou", address:"Carrer de Pallars 207, 08005 Barcelona", district:"Sant Martí", lat:41.40187, lng:2.19819, pedagogy:4, facilities:3, outdoor:3, arts:2, website:"https://agora.xtec.cat/escolalallacuna/", notes_en:"Near Llacuna metro. Standard Catalan curriculum.", notes_es:"Cerca del metro Llacuna. Currículum catalán estándar.", notes_ca:"A prop del metro Llacuna. Currículum català estàndard." }
 ];
 
-var POSTAL_CODE_DISTRICTS = {
-  '08001':'Ciutat Vella','08002':'Ciutat Vella','08003':'Ciutat Vella',
-  '08004':'Sants-Montjuïc','08005':'Sant Martí','08006':'Gràcia',
-  '08007':'Eixample','08008':'Eixample','08009':'Eixample',
-  '08010':'Eixample','08011':'Eixample','08012':'Gràcia',
-  '08013':'Eixample','08014':'Sants-Montjuïc','08015':'Eixample',
-  '08016':'Horta-Guinardó','08017':'Sarrià-Sant Gervasi','08018':'Sant Martí',
-  '08019':'Sant Martí','08020':'Sant Martí','08021':'Sarrià-Sant Gervasi',
-  '08022':'Sarrià-Sant Gervasi','08023':'Sarrià-Sant Gervasi','08024':'Gràcia',
-  '08025':'Eixample','08026':'Sant Martí','08027':'Horta-Guinardó',
-  '08028':'Les Corts','08029':'Les Corts','08030':'Nou Barris',
-  '08031':'Horta-Guinardó','08032':'Horta-Guinardó','08033':'Nou Barris',
-  '08034':'Les Corts','08035':'Horta-Guinardó','08036':'Eixample',
-  '08037':'Eixample','08038':'Sants-Montjuïc','08039':'Sants-Montjuïc',
-  '08040':'Sants-Montjuïc','08041':'Sant Andreu','08042':'Nou Barris'
-};
+// ========== EDUBCN API ==========
 
-function getDistrictFromPostalCode(code) {
-  if (!code) return null;
-  return POSTAL_CODE_DISTRICTS[code.trim()] || null;
+async function edubcnFetch(path) {
+  var url = EDUBCN_BASE + path;
+  try {
+    var resp = await fetch(url);
+    if (resp.ok) return await resp.json();
+  } catch(e) { /* CORS blocked, try proxy */ }
+  var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+  var resp2 = await fetch(proxyUrl);
+  if (resp2.ok) return await resp2.json();
+  throw new Error('edubcn API unreachable');
 }
 
-async function detectUserDistrict(lat, lng, postalCode, nominatimDistrict) {
-  if (nominatimDistrict) return nominatimDistrict;
-  return getDistrictFromPostalCode(postalCode);
+async function searchStreets(query) {
+  if (!query || query.length < 3) return [];
+  return await edubcnFetch('/carrers/' + encodeURIComponent(query.toLowerCase()));
 }
 
-function normalizeDistrict(name) {
-  if (!name) return '';
-  return name.toLowerCase().replace(/[àá]/g,'a').replace(/[èé]/g,'e').replace(/[ìí]/g,'i')
-    .replace(/[òó]/g,'o').replace(/[ùú]/g,'u').replace(/[ïü]/g,'i').replace(/[^a-z0-9]/g,'');
+async function lookupManzana(streetCode, number) {
+  var data = await edubcnFetch('/illes/' + streetCode + '/' + number);
+  if (data && data.length > 0) return data[0].CODI_ILLA;
+  return null;
 }
 
-function isSameDistrict(d1, d2) {
-  if (!d1 || !d2) return false;
-  return normalizeDistrict(d1) === normalizeDistrict(d2);
+async function lookupCentres(manzanaCode) {
+  return await edubcnFetch('/centres/' + manzanaCode);
 }
+
+function normalizeSchoolCode(code) {
+  code = code.toString().trim();
+  while (code.length < 8) code = '0' + code;
+  return code;
+}
+
+// ========== SCHOOL DATA ==========
 
 var schools = [];
 var dataSource = 'none';
@@ -418,7 +488,7 @@ function parseCSV(text) {
     if (!obj.code || !obj.name) continue;
     function toNum(val, fb) { if (!val) return fb; val=val.toString().replace(',','.'); var n=parseFloat(val); return isNaN(n)?fb:n; }
     result.push({
-      id:obj.code, name:obj.name, address:obj.address||'',
+      id: normalizeSchoolCode(obj.code), name:obj.name, address:obj.address||'',
       district:obj.district||'',
       lat:toNum(obj.lat,0), lng:toNum(obj.lng,0),
       pedagogy:toNum(obj.pedagogy,3),
@@ -480,26 +550,33 @@ function createStyledMap(elementId, center, zoom) {
   return map;
 }
 
+// ========== I18N ==========
+
 var i18n = {
   en: {
     welcome_title:"Find the Best School for Your Child",
     welcome_subtitle:"Answer a few questions and discover which public schools (P3–6th grade) in Barcelona match your family best.",
-    location_title:"📍 Your Location",
-    location_subtitle:"Enter your address to see nearby schools and estimate proximity points for the lottery.",
-    address_placeholder:"e.g. Pujades 181, Barcelona",
+    location_title:"📍 Your Address",
+    location_subtitle:"Enter your street and number to see which schools give you the maximum 30 proximity points.",
+    street_placeholder:"Type your street name...",
+    number_placeholder:"House number (e.g. 181)",
     search_btn:"Search", start_quiz:"Start School-O-Mat →", skip_location:"Skip location — show all schools",
-    geocode_success:"✅ Address found!", geocode_error:"❌ Not found. Try adding 'Barcelona'.", geocode_loading:"🔍 Searching...",
+    geocode_loading:"🔍 Looking up your catchment area...",
+    geocode_error:"❌ Not found. Check the number and try again.",
+    geocode_api_error:"❌ Could not connect to edubcn.cat. Try again later.",
     prev_btn:"← Back", next_btn:"Next →",
     results_title:"🎉 Your School Matches",
-    results_subtitle:"Based on your preferences — district proximity always prioritized.",
+    results_subtitle:"Based on your preferences — official proximity points from edubcn.cat.",
     restart_btn:"🔄 Start Over", match:"match", walk:"walk",
     details_show:"Show details ▾", details_hide:"Hide details ▴",
     no_location:"Add your address for distance info",
-    same_district_pts:"✅ Same district (30 pts)",
-    diff_district_pts:"⚠️ Different district (0 pts)",
-    same_district:"✅ Same district", diff_district:"⚠️ Different district",
-    likely_30:"30 pts (same district)", likely_0:"0 pts (different district)",
-    show_more:"Show all schools →",
+    pts_30:"✅ 30 pts — in your catchment area",
+    pts_10:"10 pts — same city",
+    pts_30_short:"✅ 30 pts",
+    pts_10_short:"10 pts",
+    catchment_found:"✅ Catchment area found!",
+    catchment_detail:"{total} schools give you 30 pts · {matched} are in our database",
+    catchment_results_note:"🎯 Schools marked with ✅ are in your official catchment area (30 proximity points). Data from <a href='https://www.edubcn.cat/es/alumnado_y_familia/informacion_general_matriculacion/areas_influencia/consulta_de_centros_educativos' target='_blank'>edubcn.cat</a>.",
     q1_title:"What teaching approach do you prefer?",
     q1_desc:"From structured/traditional to project-based/innovative.",
     q1_o1:"Traditional", q1_o1_sub:"Clear routines, teacher-led, textbook-based",
@@ -527,22 +604,27 @@ var i18n = {
   es: {
     welcome_title:"Encuentra la Mejor Escuela para tu Hijo/a",
     welcome_subtitle:"Responde unas preguntas y descubre qué escuelas públicas (P3–6º) de Barcelona encajan mejor.",
-    location_title:"📍 Tu Ubicación",
-    location_subtitle:"Introduce tu dirección para ver escuelas cercanas y estimar puntos de proximidad.",
-    address_placeholder:"ej. Pujades 181, Barcelona",
+    location_title:"📍 Tu Dirección",
+    location_subtitle:"Introduce tu calle y número para ver qué escuelas te dan los 30 puntos máximos de proximidad.",
+    street_placeholder:"Escribe el nombre de tu calle...",
+    number_placeholder:"Número (ej. 181)",
     search_btn:"Buscar", start_quiz:"Empezar School-O-Mat →", skip_location:"Saltar ubicación — mostrar todas",
-    geocode_success:"✅ ¡Dirección encontrada!", geocode_error:"❌ No encontrada. Prueba con 'Barcelona'.", geocode_loading:"🔍 Buscando...",
+    geocode_loading:"🔍 Buscando tu zona de influencia...",
+    geocode_error:"❌ No encontrado. Revisa el número e inténtalo de nuevo.",
+    geocode_api_error:"❌ No se pudo conectar con edubcn.cat. Inténtalo más tarde.",
     prev_btn:"← Atrás", next_btn:"Siguiente →",
     results_title:"🎉 Tus Escuelas Recomendadas",
-    results_subtitle:"Según tus preferencias — proximidad de distrito siempre priorizada.",
+    results_subtitle:"Según tus preferencias — puntos de proximidad oficiales de edubcn.cat.",
     restart_btn:"🔄 Empezar de Nuevo", match:"compatibilidad", walk:"a pie",
     details_show:"Ver detalles ▾", details_hide:"Ocultar ▴",
     no_location:"Añade tu dirección para distancias",
-    same_district_pts:"✅ Mismo distrito (30 pts)",
-    diff_district_pts:"⚠️ Distrito diferente (0 pts)",
-    same_district:"✅ Mismo distrito", diff_district:"⚠️ Distrito diferente",
-    likely_30:"30 pts (mismo distrito)", likely_0:"0 pts (distrito diferente)",
-    show_more:"Mostrar todas las escuelas →",
+    pts_30:"✅ 30 pts — en tu zona de influencia",
+    pts_10:"10 pts — misma ciudad",
+    pts_30_short:"✅ 30 pts",
+    pts_10_short:"10 pts",
+    catchment_found:"✅ ¡Zona de influencia encontrada!",
+    catchment_detail:"{total} escuelas te dan 30 pts · {matched} están en nuestra base de datos",
+    catchment_results_note:"🎯 Las escuelas marcadas con ✅ están en tu zona de influencia oficial (30 puntos de proximidad). Datos de <a href='https://www.edubcn.cat/es/alumnado_y_familia/informacion_general_matriculacion/areas_influencia/consulta_de_centros_educativos' target='_blank'>edubcn.cat</a>.",
     q1_title:"¿Qué enfoque pedagógico prefieres?", q1_desc:"Desde tradicional hasta innovador.",
     q1_o1:"Tradicional", q1_o1_sub:"Rutinas claras, profesor guía, libros de texto",
     q1_o2:"Híbrido", q1_o2_sub:"Mezcla de clases estructuradas y proyectos creativos",
@@ -566,22 +648,27 @@ var i18n = {
   ca: {
     welcome_title:"Troba la Millor Escola per al teu Fill/a",
     welcome_subtitle:"Respon unes preguntes i descobreix quines escoles públiques (P3–6è) de Barcelona encaixen millor.",
-    location_title:"📍 La Teva Ubicació",
-    location_subtitle:"Introdueix la teva adreça per veure escoles properes i estimar punts de proximitat.",
-    address_placeholder:"p.ex. Pujades 181, Barcelona",
+    location_title:"📍 La Teva Adreça",
+    location_subtitle:"Introdueix el teu carrer i número per veure quines escoles et donen els 30 punts màxims de proximitat.",
+    street_placeholder:"Escriu el nom del teu carrer...",
+    number_placeholder:"Número (ex. 181)",
     search_btn:"Cercar", start_quiz:"Començar School-O-Mat →", skip_location:"Saltar ubicació — mostrar totes",
-    geocode_success:"✅ Adreça trobada!", geocode_error:"❌ No trobada. Prova amb 'Barcelona'.", geocode_loading:"🔍 Cercant...",
+    geocode_loading:"🔍 Cercant la teva zona d'influència...",
+    geocode_error:"❌ No trobat. Revisa el número i torna-ho a provar.",
+    geocode_api_error:"❌ No s'ha pogut connectar amb edubcn.cat. Prova-ho més tard.",
     prev_btn:"← Enrere", next_btn:"Següent →",
     results_title:"🎉 Les Teves Escoles Recomanades",
-    results_subtitle:"Segons les teves preferències — proximitat de districte sempre prioritzada.",
+    results_subtitle:"Segons les teves preferències — punts de proximitat oficials d'edubcn.cat.",
     restart_btn:"🔄 Tornar a Començar", match:"compatibilitat", walk:"a peu",
     details_show:"Veure detalls ▾", details_hide:"Amagar ▴",
     no_location:"Afegeix adreça per distàncies",
-    same_district_pts:"✅ Mateix districte (30 pts)",
-    diff_district_pts:"⚠️ Districte diferent (0 pts)",
-    same_district:"✅ Mateix districte", diff_district:"⚠️ Districte diferent",
-    likely_30:"30 pts (mateix districte)", likely_0:"0 pts (districte diferent)",
-    show_more:"Mostrar totes les escoles →",
+    pts_30:"✅ 30 pts — a la teva zona d'influència",
+    pts_10:"10 pts — mateixa ciutat",
+    pts_30_short:"✅ 30 pts",
+    pts_10_short:"10 pts",
+    catchment_found:"✅ Zona d'influència trobada!",
+    catchment_detail:"{total} escoles et donen 30 pts · {matched} estan a la nostra base de dades",
+    catchment_results_note:"🎯 Les escoles marcades amb ✅ estan a la teva zona d'influència oficial (30 punts de proximitat). Dades d'<a href='https://www.edubcn.cat/es/alumnado_y_familia/informacion_general_matriculacion/areas_influencia/consulta_de_centros_educativos' target='_blank'>edubcn.cat</a>.",
     q1_title:"Quin enfocament pedagògic prefereixes?", q1_desc:"Des de tradicional fins a innovador.",
     q1_o1:"Tradicional", q1_o1_sub:"Rutines clares, professor guia, llibres de text",
     q1_o2:"Híbrid", q1_o2_sub:"Mescla de classes estructurades i projectes creatius",
@@ -620,7 +707,16 @@ function setLang(lang) {
 }
 function t(k){return i18n[currentLang][k]||i18n['en'][k]||k;}
 
-var userLat=null, userLng=null, userDistrict=null, userPostalCode=null, miniMap=null, miniMarker=null;
+// ========== LOCATION STATE ==========
+
+var userLat = null, userLng = null, miniMap = null, miniMarker = null;
+var selectedStreetCode = null, selectedStreetName = null;
+var userManzana = null;
+var catchmentSchoolCodes = []; // Array of CODI_CENTRE that give 30 pts
+var catchmentSchoolsFromAPI = []; // Full school objects from edubcn API
+var streetSearchTimer = null;
+
+// ========== DISTANCE HELPERS ==========
 
 function haversineKm(lat1,lng1,lat2,lng2){
   var R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
@@ -628,325 +724,576 @@ function haversineKm(lat1,lng1,lat2,lng2){
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 function estimateWalkMinutes(km){return Math.round(km/0.075);}
-function estimateProximityPoints(sameDistrict){ return sameDistrict ? 30 : 0; }
-function getProximityLabel(pts){ return pts === 30 ? t('likely_30') : t('likely_0'); }
-function getProximityClass(pts){ return pts === 30 ? 'prox-30' : 'prox-0'; }
 
-async function geocodeAddress(){
-  var input=document.getElementById('address-input').value.trim();
-  if(!input) return;
-  var status=document.getElementById('geocode-status');
-  status.className='geocode-status loading'; status.textContent=t('geocode_loading');
-  try{
-    var query=input.includes('Barcelona')?input:input+', Barcelona, Spain';
-    var resp=await fetch('https://nominatim.openstreetmap.org/search?format=json&q='+encodeURIComponent(query)+'&limit=1&countrycodes=es&addressdetails=1');
-    var data=await resp.json();
-    if(data.length>0){
-      userLat=parseFloat(data[0].lat); userLng=parseFloat(data[0].lon);
-      var nominatimDistrict=null;
-      if(data[0].address){
-        userPostalCode=data[0].address.postcode||null;
-        nominatimDistrict=data[0].address.city_district||data[0].address.suburb||null;
-      }
-      userDistrict=await detectUserDistrict(userLat,userLng,userPostalCode,nominatimDistrict);
-      var districtLabel=userDistrict?' · 🏘️ '+userDistrict:'';
-      status.className='geocode-status success';
-      status.textContent=t('geocode_success')+districtLabel;
-            document.getElementById('start-btn').disabled=false;
-      var mapDiv=document.getElementById('minimap'); mapDiv.style.display='block';
-      if(!miniMap){ miniMap=createStyledMap('minimap',[userLat,userLng],15); }
-      else { miniMap.setView([userLat,userLng],15); }
-      if(miniMarker) miniMap.removeLayer(miniMarker);
-      miniMarker=L.marker([userLat,userLng],{
-        icon:L.divIcon({
-          html:'<div style="background:#ef4444;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);">🏠</div>',
-          className:'',iconSize:[28,28],iconAnchor:[14,14]
-        })
-      }).addTo(miniMap);
-      miniMap.setView([userLat,userLng],17);
-    } else { status.className='geocode-status error'; status.textContent=t('geocode_error'); }
-  } catch(e){ status.className='geocode-status error'; status.textContent=t('geocode_error'); }
+// ========== STREET AUTOCOMPLETE ==========
+
+var streetInput = document.getElementById('street-input');
+var streetDropdown = document.getElementById('street-dropdown');
+
+streetInput.addEventListener('input', function() {
+  var val = this.value.trim();
+  if (streetSearchTimer) clearTimeout(streetSearchTimer);
+  if (val.length < 3) { streetDropdown.classList.remove('open'); streetDropdown.innerHTML = ''; return; }
+  streetSearchTimer = setTimeout(function() { doStreetSearch(val); }, 300);
+});
+
+streetInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { streetDropdown.classList.remove('open'); }
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.street-input-wrap')) { streetDropdown.classList.remove('open'); }
+});
+
+async function doStreetSearch(query) {
+  try {
+    var results = await searchStreets(query);
+    if (!results || results.length === 0) {
+      streetDropdown.innerHTML = '<div class="autocomplete-item" style="color:var(--gray-400);cursor:default;">No streets found</div>';
+      streetDropdown.classList.add('open');
+      return;
+    }
+    var html = '';
+    results.forEach(function(r) {
+      html += '<div class="autocomplete-item" onclick="selectStreet(\'' + r.CODI + '\',\'' + escapeHtml(r.NOM_COMPLET) + '\')">';
+      html += '<span class="street-short">' + escapeHtml(r.NOM) + '</span>';
+      html += '<span class="street-full">' + escapeHtml(r.NOM_COMPLET) + '</span>';
+      html += '</div>';
+    });
+    streetDropdown.innerHTML = html;
+    streetDropdown.classList.add('open');
+  } catch(e) {
+    console.warn('Street search error:', e);
+    streetDropdown.innerHTML = '<div class="autocomplete-item" style="color:var(--danger);cursor:default;">Connection error — try again</div>';
+    streetDropdown.classList.add('open');
+  }
 }
-function skipLocation(){userLat=null;userLng=null;userDistrict=null;userPostalCode=null;goToQuiz();}
 
-var currentQuestion=0,answers={};
-var questions=[
-  {id:'distance_pref',titleKey:'q2_title',descKey:'q2_desc',options:[
-    {value:'close',labelKey:'q2_o1',icon:'🏠'},
-    {value:'medium',labelKey:'q2_o2',icon:'🚶'},
-    {value:'far',labelKey:'q2_o3',icon:'🚌'}
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function selectStreet(code, fullName) {
+  selectedStreetCode = code;
+  selectedStreetName = fullName;
+  streetDropdown.classList.remove('open');
+  streetDropdown.innerHTML = '';
+
+  // Hide input, show selected display
+  document.getElementById('street-selection').style.display = 'none';
+  document.getElementById('selected-street-display').style.display = 'flex';
+  document.getElementById('selected-street-name').textContent = fullName;
+
+  // Show number input
+  document.getElementById('number-row').style.display = 'flex';
+  document.getElementById('number-input').focus();
+}
+
+function clearStreet() {
+  selectedStreetCode = null;
+  selectedStreetName = null;
+  userManzana = null;
+  catchmentSchoolCodes = [];
+  catchmentSchoolsFromAPI = [];
+  userLat = null;
+  userLng = null;
+
+  document.getElementById('street-selection').style.display = 'block';
+  document.getElementById('selected-street-display').style.display = 'none';
+  document.getElementById('number-row').style.display = 'none';
+  document.getElementById('number-input').value = '';
+  document.getElementById('street-input').value = '';
+  document.getElementById('geocode-status').className = 'geocode-status';
+  document.getElementById('geocode-status').textContent = '';
+  document.getElementById('catchment-summary').classList.remove('visible');
+  document.getElementById('catchment-summary').innerHTML = '';
+  document.getElementById('minimap').style.display = 'none';
+  document.getElementById('start-btn').disabled = true;
+}
+
+// Number input enter key
+document.getElementById('number-input').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') lookupCatchment();
+});
+
+// ========== CATCHMENT LOOKUP ==========
+
+async function lookupCatchment() {
+  var number = document.getElementById('number-input').value.trim();
+  if (!number || !selectedStreetCode) return;
+
+  var status = document.getElementById('geocode-status');
+  var summary = document.getElementById('catchment-summary');
+  status.className = 'geocode-status loading';
+  status.textContent = t('geocode_loading');
+  summary.classList.remove('visible');
+
+  try {
+    // Step 1: Get manzana
+    var manzana = await lookupManzana(selectedStreetCode, number);
+    if (!manzana) {
+      status.className = 'geocode-status error';
+      status.textContent = t('geocode_error');
+      return;
+    }
+    userManzana = manzana;
+
+    // Step 2: Get 30-point schools
+    var centres = await lookupCentres(manzana);
+    if (!centres || centres.length === 0) {
+      status.className = 'geocode-status error';
+      status.textContent = t('geocode_error');
+      return;
+    }
+
+    catchmentSchoolsFromAPI = centres;
+    catchmentSchoolCodes = centres.map(function(c) { return normalizeSchoolCode(c.CODI_CENTRE); });
+
+    // Try to geocode using Nominatim for user lat/lng (for distance calc)
+    await geocodeForLatLng(selectedStreetName + ' ' + number + ', Barcelona');
+
+    // Count how many catchment schools are in our database
+    var matchedInDB = 0;
+    catchmentSchoolCodes.forEach(function(code) {
+      if (schools.find(function(s) { return s.id === code; })) matchedInDB++;
+    });
+
+    // Show success
+    status.className = 'geocode-status success';
+    status.textContent = t('catchment_found') + ' · Manzana ' + manzana;
+
+    summary.classList.add('visible');
+    summary.innerHTML = '<div class="catchment-title">🎯 ' + t('catchment_found') + '</div>' +
+      '<div class="catchment-detail">' +
+      t('catchment_detail').replace('{total}', centres.length).replace('{matched}', matchedInDB) +
+      '</div>';
+
+    document.getElementById('start-btn').disabled = false;
+
+    // Show minimap
+    showMinimap();
+
+  } catch(e) {
+    console.error('Catchment lookup error:', e);
+    status.className = 'geocode-status error';
+    status.textContent = t('geocode_api_error');
+  }
+}
+
+async function geocodeForLatLng(query) {
+  try {
+    var resp = await fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1&countrycodes=es');
+    var data = await resp.json();
+    if (data.length > 0) {
+      userLat = parseFloat(data[0].lat);
+      userLng = parseFloat(data[0].lon);
+    }
+  } catch(e) { console.warn('Geocode fallback failed:', e); }
+}
+
+function showMinimap() {
+  var mapDiv = document.getElementById('minimap');
+  mapDiv.style.display = 'block';
+
+  // Determine center: user location or average of catchment schools
+  var centerLat, centerLng, zoom;
+  if (userLat && userLng) {
+    centerLat = userLat; centerLng = userLng; zoom = 15;
+  } else if (catchmentSchoolsFromAPI.length > 0) {
+    var sLat = 0, sLng = 0, count = 0;
+    catchmentSchoolsFromAPI.forEach(function(c) {
+      if (c.LATITUD && c.LONGITUD) {
+        sLat += parseFloat(c.LATITUD); sLng += parseFloat(c.LONGITUD); count++;
+      }
+    });
+    centerLat = sLat/count; centerLng = sLng/count; zoom = 14;
+  } else {
+    centerLat = 41.399; centerLng = 2.196; zoom = 14;
+  }
+
+  if (!miniMap) { miniMap = createStyledMap('minimap', [centerLat, centerLng], zoom); }
+  else { miniMap.setView([centerLat, centerLng], zoom); }
+
+  // Clear existing markers
+  miniMap.eachLayer(function(layer) {
+    if (layer instanceof L.Marker || layer instanceof L.CircleMarker) miniMap.removeLayer(layer);
+  });
+
+  // Add user marker
+  if (userLat && userLng) {
+    miniMarker = L.marker([userLat, userLng], {
+      icon: L.divIcon({
+        html: '<div style="background:#ef4444;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);">🏠</div>',
+        className:'', iconSize:[28,28], iconAnchor:[14,14]
+      })
+    }).addTo(miniMap);
+  }
+
+  // Add catchment school markers
+  var bounds = userLat ? L.latLngBounds([[userLat, userLng]]) : L.latLngBounds();
+  catchmentSchoolsFromAPI.forEach(function(c) {
+    if (c.LATITUD && c.LONGITUD) {
+      var lat = parseFloat(c.LATITUD), lng = parseFloat(c.LONGITUD);
+      L.circleMarker([lat, lng], {
+        radius: 6, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 0.9
+      }).addTo(miniMap).bindPopup('<b>' + c.NOM + '</b><br><span style="color:#065f46;font-size:12px;">✅ 30 pts</span>');
+      bounds.extend([lat, lng]);
+    }
+  });
+  if (bounds.isValid()) miniMap.fitBounds(bounds.pad(0.15));
+}
+
+function skipLocation() {
+  userLat = null; userLng = null; userManzana = null;
+  catchmentSchoolCodes = []; catchmentSchoolsFromAPI = [];
+  goToQuiz();
+}
+
+// ========== QUIZ ==========
+
+var currentQuestion = 0, answers = {};
+var questions = [
+  { id:'distance_pref', titleKey:'q2_title', descKey:'q2_desc', options:[
+    {value:'close', labelKey:'q2_o1', icon:'🏠'},
+    {value:'medium', labelKey:'q2_o2', icon:'🚶'},
+    {value:'far', labelKey:'q2_o3', icon:'🚌'}
   ]},
-  {id:'pedagogy_pref',titleKey:'q1_title',descKey:'q1_desc',options:[
-    {value:1,labelKey:'q1_o1',subKey:'q1_o1_sub',icon:'📚'},
-    {value:2,labelKey:'q1_o2',subKey:'q1_o2_sub',icon:'⚖️'},
-    {value:3,labelKey:'q1_o3',subKey:'q1_o3_sub',icon:'🚀'}
+  { id:'pedagogy_pref', titleKey:'q1_title', descKey:'q1_desc', options:[
+    {value:1, labelKey:'q1_o1', subKey:'q1_o1_sub', icon:'📚'},
+    {value:2, labelKey:'q1_o2', subKey:'q1_o2_sub', icon:'⚖️'},
+    {value:3, labelKey:'q1_o3', subKey:'q1_o3_sub', icon:'🚀'}
   ]},
-  {id:'facilities_pref',titleKey:'q6_title',descKey:'q6_desc',options:[
-    {value:'high',labelKey:'q6_o1',subKey:'q6_o1_sub',icon:'✨'},
-    {value:'medium',labelKey:'q6_o2',subKey:'q6_o2_sub',icon:'🏫'},
-    {value:'low',labelKey:'q6_o3',subKey:'q6_o3_sub',icon:'🧱'}
+  { id:'facilities_pref', titleKey:'q6_title', descKey:'q6_desc', options:[
+    {value:'high', labelKey:'q6_o1', subKey:'q6_o1_sub', icon:'✨'},
+    {value:'medium', labelKey:'q6_o2', subKey:'q6_o2_sub', icon:'🏫'},
+    {value:'low', labelKey:'q6_o3', subKey:'q6_o3_sub', icon:'🧱'}
   ]},
-  {id:'outdoor_pref',titleKey:'q4_title',descKey:'q4_desc',options:[
-    {value:'high',labelKey:'q4_o1',subKey:'q4_o1_sub',icon:'🌳'},
-    {value:'medium',labelKey:'q4_o2',subKey:'q4_o2_sub',icon:'🌤️'},
-    {value:'low',labelKey:'q4_o3',subKey:'q4_o3_sub',icon:'🏢'}
+  { id:'outdoor_pref', titleKey:'q4_title', descKey:'q4_desc', options:[
+    {value:'high', labelKey:'q4_o1', subKey:'q4_o1_sub', icon:'🌳'},
+    {value:'medium', labelKey:'q4_o2', subKey:'q4_o2_sub', icon:'🌤️'},
+    {value:'low', labelKey:'q4_o3', subKey:'q4_o3_sub', icon:'🏢'}
   ]},
-  {id:'arts_pref',titleKey:'q5_title',descKey:'q5_desc',options:[
-    {value:'high',labelKey:'q5_o1',subKey:'q5_o1_sub',icon:'🎨'},
-    {value:'medium',labelKey:'q5_o2',subKey:'q5_o2_sub',icon:'🖼️'},
-    {value:'low',labelKey:'q5_o3',subKey:'q5_o3_sub',icon:'📐'}
+  { id:'arts_pref', titleKey:'q5_title', descKey:'q5_desc', options:[
+    {value:'high', labelKey:'q5_o1', subKey:'q5_o1_sub', icon:'🎨'},
+    {value:'medium', labelKey:'q5_o2', subKey:'q5_o2_sub', icon:'🖼️'},
+    {value:'low', labelKey:'q5_o3', subKey:'q5_o3_sub', icon:'📐'}
   ]}
 ];
-function showScreen(id){
+
+function showScreen(id) {
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById(id).classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function goToQuiz(){
-  if(document.getElementById('start-btn').disabled && userLat===null) return;
-  showScreen('screen-quiz');currentQuestion=0;renderQuestion();
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
-function renderQuestion(){
-  var q=questions[currentQuestion];
-  document.getElementById('progress-fill').style.width=((currentQuestion)/questions.length*100)+'%';
-  document.getElementById('prev-btn').style.visibility=currentQuestion===0?'hidden':'visible';
-  document.getElementById('next-btn').textContent=t('next_btn');
-  var html='<div class="question-card"><div class="question-number">'+(currentQuestion+1)+' / '+questions.length+'</div>';
-  html+='<h2>'+t(q.titleKey)+'</h2><p class="question-desc">'+t(q.descKey)+'</p><div class="options-grid">';
+function goToQuiz() {
+  showScreen('screen-quiz'); currentQuestion = 0; renderQuestion();
+}
+
+function renderQuestion() {
+  var q = questions[currentQuestion];
+  document.getElementById('progress-fill').style.width = ((currentQuestion)/questions.length*100)+'%';
+  document.getElementById('prev-btn').style.visibility = currentQuestion===0 ? 'hidden' : 'visible';
+  document.getElementById('next-btn').textContent = t('next_btn');
+  var html = '<div class="question-card"><div class="question-number">'+(currentQuestion+1)+' / '+questions.length+'</div>';
+  html += '<h2>'+t(q.titleKey)+'</h2><p class="question-desc">'+t(q.descKey)+'</p><div class="options-grid">';
   q.options.forEach(function(opt){
-    var sel=answers[q.id]===opt.value?'selected':'';
-    var sub=opt.subKey&&t(opt.subKey)?'<span class="option-sublabel">'+t(opt.subKey)+'</span>':'';
-    var val=typeof opt.value==='string'?"'"+opt.value+"'":opt.value;
-    html+='<div class="option-btn '+sel+'" onclick="selectOption(\''+q.id+'\','+val+')"><span class="option-icon">'+opt.icon+'</span><div><span class="option-label">'+t(opt.labelKey)+'</span>'+sub+'</div></div>';
+    var sel = answers[q.id]===opt.value ? 'selected' : '';
+    var sub = opt.subKey && t(opt.subKey) ? '<span class="option-sublabel">'+t(opt.subKey)+'</span>' : '';
+    var val = typeof opt.value==='string' ? "'"+opt.value+"'" : opt.value;
+    html += '<div class="option-btn '+sel+'" onclick="selectOption(\''+q.id+'\','+val+')"><span class="option-icon">'+opt.icon+'</span><div><span class="option-label">'+t(opt.labelKey)+'</span>'+sub+'</div></div>';
   });
-  html+='</div></div>';
-  document.getElementById('question-container').innerHTML=html;
+  html += '</div></div>';
+  document.getElementById('question-container').innerHTML = html;
 }
 
-function selectOption(qId,value){
-  answers[qId]=value; renderQuestion();
+function selectOption(qId, value) {
+  answers[qId] = value; renderQuestion();
 }
 
-function nextQuestion(){
-  if(answers[questions[currentQuestion].id]===undefined) return;
-  if(currentQuestion<questions.length-1){currentQuestion++;renderQuestion();}
-  else{calculateAndShowResults();}
+function nextQuestion() {
+  if (answers[questions[currentQuestion].id] === undefined) return;
+  if (currentQuestion < questions.length-1) { currentQuestion++; renderQuestion(); }
+  else { calculateAndShowResults(); }
 }
-function prevQuestion(){if(currentQuestion>0){currentQuestion--;renderQuestion();}}
 
-function scoreSchool(school){
-  var breakdown={};
-  var distKm=null,walkMin=null,proxPts=null,sameDistrict=false;
-  if(userLat&&userLng){
-    distKm=haversineKm(userLat,userLng,school.lat,school.lng);
-    walkMin=estimateWalkMinutes(distKm);
-    sameDistrict=isSameDistrict(userDistrict,school.district);
-    proxPts=estimateProximityPoints(sameDistrict);
+function prevQuestion() {
+  if (currentQuestion > 0) { currentQuestion--; renderQuestion(); }
+}
+
+// ========== SCORING ==========
+
+function isInCatchment(school) {
+  if (catchmentSchoolCodes.length === 0) return false;
+  return catchmentSchoolCodes.indexOf(school.id) !== -1;
+}
+
+function getProximityPoints(school) {
+  if (catchmentSchoolCodes.length === 0) return null; // Unknown
+  return isInCatchment(school) ? 30 : 10;
+}
+
+function scoreSchool(school) {
+  var breakdown = {};
+  var distKm = null, walkMin = null;
+  var inCatchment = isInCatchment(school);
+  var proxPts = getProximityPoints(school);
+
+  if (userLat && userLng && school.lat && school.lng) {
+    distKm = haversineKm(userLat, userLng, school.lat, school.lng);
+    walkMin = estimateWalkMinutes(distKm);
   }
 
-  var score=0;
-  var maxScore=100;
+  var score = 0;
+  var maxScore = 100;
 
-  // === Pedagogy (fixed 25 pts) ===
-  var pedMap={1:1.5,2:3,3:5};
-  var prefPed=pedMap[answers.pedagogy_pref]||3;
-  var pedDiff=Math.abs(school.pedagogy-prefPed);
-  var pedScore=Math.max(0,25*(1-pedDiff/3));
-  score+=pedScore; breakdown.pedagogy=pedScore;
-
-  // === Distance + District (fixed 30 pts) ===
-  if(userLat&&userLng){
-    var ds=0;
-    if(sameDistrict){ ds+=15; } else { ds+=1; }
-    if(answers.distance_pref==='close'){
-      if(walkMin<=10) ds+=15; else if(walkMin<=15) ds+=9; else if(walkMin<=20) ds+=4; else ds+=1;
-    } else if(answers.distance_pref==='medium'){
-      if(walkMin<=20) ds+=15; else if(walkMin<=30) ds+=8; else ds+=2;
-    } else { ds+=8; }
-    score+=Math.min(ds,30); breakdown.distance=Math.min(ds,30);
-  } else { score+=15; breakdown.distance=15; }
-
-  // === Proximity bonus (fixed 10 pts) ===
-  if(userLat&&userLng){
-    var proxFade,proxScale;
-    if(answers.distance_pref==='close'){ proxScale=1; proxFade=1.5; }
-    else if(answers.distance_pref==='medium'){ proxScale=0.5; proxFade=3; }
-    else { proxScale=0.15; proxFade=5; }
-    var proxBonus=Math.max(0,10*proxScale*(1-distKm/proxFade));
-    score+=proxBonus; breakdown.proximity=proxBonus;
+  // === Catchment / Proximity (30 pts) ===
+  if (catchmentSchoolCodes.length > 0) {
+    if (inCatchment) {
+      score += 30;
+      breakdown.catchment = 30;
+    } else {
+      score += 3;
+      breakdown.catchment = 3;
+    }
+  } else {
+    // No address entered — give neutral
+    score += 15;
+    breakdown.catchment = 15;
   }
 
-  // === Features pool (35 pts redistributed by preference) ===
-  var shareMap={'high':3,'medium':1.5,'low':0.5};
-  var facShare=shareMap[answers.facilities_pref]||1.5;
-  var outShare=shareMap[answers.outdoor_pref]||1.5;
-  var artShare=shareMap[answers.arts_pref]||1.5;
-  var totalShares=facShare+outShare+artShare;
+  // === Distance preference (15 pts) ===
+  if (userLat && userLng && distKm !== null) {
+    var ds = 0;
+    if (answers.distance_pref === 'close') {
+      if (walkMin <= 10) ds = 15;
+      else if (walkMin <= 15) ds = 10;
+      else if (walkMin <= 20) ds = 5;
+      else ds = 1;
+    } else if (answers.distance_pref === 'medium') {
+      if (walkMin <= 20) ds = 15;
+      else if (walkMin <= 30) ds = 9;
+      else ds = 3;
+    } else {
+      ds = 10; // distance not important — everyone gets decent score
+    }
+    score += ds;
+    breakdown.distance = ds;
+  } else {
+    score += 8; // neutral
+    breakdown.distance = 8;
+  }
 
-  var facWeight=35*(facShare/totalShares);
-  var outWeight=35*(outShare/totalShares);
-  var artWeight=35*(artShare/totalShares);
+  // === Pedagogy (25 pts) ===
+  var pedMap = {1:1.5, 2:3, 3:5};
+  var prefPed = pedMap[answers.pedagogy_pref] || 3;
+  var pedDiff = Math.abs(school.pedagogy - prefPed);
+  var pedScore = Math.max(0, 25 * (1 - pedDiff/3.5));
+  score += pedScore;
+  breakdown.pedagogy = pedScore;
+
+  // === Features pool (30 pts redistributed by preference) ===
+  var shareMap = {'high':3, 'medium':1.5, 'low':0.5};
+  var facShare = shareMap[answers.facilities_pref] || 1.5;
+  var outShare = shareMap[answers.outdoor_pref] || 1.5;
+  var artShare = shareMap[answers.arts_pref] || 1.5;
+  var totalShares = facShare + outShare + artShare;
+
+  var facWeight = 30 * (facShare / totalShares);
+  var outWeight = 30 * (outShare / totalShares);
+  var artWeight = 30 * (artShare / totalShares);
 
   // Facilities
-  var facTarget=answers.facilities_pref==='high'?5:(answers.facilities_pref==='medium'?3:1);
-  var facDiff=Math.abs(school.facilities-facTarget);
-  var facMax=answers.facilities_pref==='high'?4:2;
-  var facScore=Math.max(0,facWeight*(1-facDiff/facMax));
-  score+=facScore; breakdown.facilities=facScore;
+  var facTarget = answers.facilities_pref === 'high' ? 5 : (answers.facilities_pref === 'medium' ? 3 : 1);
+  var facDiff = Math.abs(school.facilities - facTarget);
+  var facMax = answers.facilities_pref === 'high' ? 4 : 2;
+  var facScore = Math.max(0, facWeight * (1 - facDiff/facMax));
+  score += facScore; breakdown.facilities = facScore;
 
   // Outdoor
-  var outTarget=answers.outdoor_pref==='high'?5:(answers.outdoor_pref==='medium'?3:1);
-  var outDiff=Math.abs(school.outdoor-outTarget);
-  var outMax=answers.outdoor_pref==='high'?4:2;
-  var outScore=Math.max(0,outWeight*(1-outDiff/outMax));
-  score+=outScore; breakdown.outdoor=outScore;
+  var outTarget = answers.outdoor_pref === 'high' ? 5 : (answers.outdoor_pref === 'medium' ? 3 : 1);
+  var outDiff = Math.abs(school.outdoor - outTarget);
+  var outMax = answers.outdoor_pref === 'high' ? 4 : 2;
+  var outScore = Math.max(0, outWeight * (1 - outDiff/outMax));
+  score += outScore; breakdown.outdoor = outScore;
 
   // Arts
-  var artTarget=answers.arts_pref==='high'?5:(answers.arts_pref==='medium'?3:1);
-  var artDiff=Math.abs(school.arts-artTarget);
-  var artMax=answers.arts_pref==='high'?4:2;
-  var artScore=Math.max(0,artWeight*(1-artDiff/artMax));
-  score+=artScore; breakdown.arts=artScore;
+  var artTarget = answers.arts_pref === 'high' ? 5 : (answers.arts_pref === 'medium' ? 3 : 1);
+  var artDiff = Math.abs(school.arts - artTarget);
+  var artMax = answers.arts_pref === 'high' ? 4 : 2;
+  var artScore = Math.max(0, artWeight * (1 - artDiff/artMax));
+  score += artScore; breakdown.arts = artScore;
 
   return {
-    school:school,score:score,maxScore:maxScore,pct:Math.round((score/maxScore)*100),
-    distKm:distKm,walkMin:walkMin,proxPts:proxPts,sameDistrict:sameDistrict,breakdown:breakdown
+    school: school, score: score, maxScore: maxScore,
+    pct: Math.round((score/maxScore)*100),
+    distKm: distKm, walkMin: walkMin,
+    inCatchment: inCatchment, proxPts: proxPts,
+    breakdown: breakdown
   };
 }
 
-var resultsMap=null,scoredResults=[];
+// ========== RESULTS ==========
 
-function calculateAndShowResults(){
+var resultsMap = null, scoredResults = [];
+
+function calculateAndShowResults() {
   showScreen('screen-results');
-  scoredResults=schools.map(function(s){return scoreSchool(s);});
-  scoredResults.sort(function(a,b){
-    if(a.sameDistrict&&!b.sameDistrict) return -1;
-    if(!a.sameDistrict&&b.sameDistrict) return 1;
-    if(b.pct!==a.pct) return b.pct-a.pct;
-    var distA=a.distKm!==null?a.distKm:9999;
-    var distB=b.distKm!==null?b.distKm:9999;
-    return distA-distB;
+  scoredResults = schools.map(function(s) { return scoreSchool(s); });
+
+  // Sort: catchment schools first, then by score, then by distance
+  scoredResults.sort(function(a, b) {
+    // Catchment schools always first
+    if (a.inCatchment && !b.inCatchment) return -1;
+    if (!a.inCatchment && b.inCatchment) return 1;
+    // Then by score
+    if (b.pct !== a.pct) return b.pct - a.pct;
+    // Then by distance
+    var distA = a.distKm !== null ? a.distKm : 9999;
+    var distB = b.distKm !== null ? b.distKm : 9999;
+    return distA - distB;
   });
+
   renderResults();
 }
 
-function renderResults(){
-  if(scoredResults.length===0) return;
-  if(resultsMap){resultsMap.remove();resultsMap=null;}
-  resultsMap=createStyledMap('results-map',[41.399,2.196],14);
+function renderResults() {
+  if (scoredResults.length === 0) return;
+  if (resultsMap) { resultsMap.remove(); resultsMap = null; }
+  resultsMap = createStyledMap('results-map', [41.399, 2.196], 14);
 
-  if(userLat&&userLng){
-    L.marker([userLat,userLng],{
-      icon:L.divIcon({
-        html:'<div style="background:#ef4444;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);">🏠</div>',
-        className:'',iconSize:[28,28],iconAnchor:[14,14]
-      })
-    }).addTo(resultsMap).bindPopup('<b>Your location</b>'+(userDistrict?' · '+userDistrict:''));
+  // Catchment note
+  var catchNote = document.getElementById('catchment-results-note');
+  if (catchmentSchoolCodes.length > 0) {
+    catchNote.style.display = 'block';
+    catchNote.innerHTML = t('catchment_results_note');
+  } else {
+    catchNote.style.display = 'none';
   }
 
-  var bounds=userLat?L.latLngBounds([[userLat,userLng]]):L.latLngBounds();
-  scoredResults.forEach(function(r,i){
+  // User marker
+  if (userLat && userLng) {
+    L.marker([userLat, userLng], {
+      icon: L.divIcon({
+        html: '<div style="background:#ef4444;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);">🏠</div>',
+        className:'', iconSize:[28,28], iconAnchor:[14,14]
+      })
+    }).addTo(resultsMap).bindPopup('<b>Your location</b>');
+  }
+
+  var bounds = userLat ? L.latLngBounds([[userLat, userLng]]) : L.latLngBounds();
+
+  scoredResults.forEach(function(r, i) {
+    if (!r.school.lat || !r.school.lng) return;
     var color, sz;
-    if(i===0){ color='#f59e0b'; sz=11; }
-    else if(i===1){ color='#2563eb'; sz=10; }
-    else if(i===2){ color='#10b981'; sz=9; }
-    else if(r.sameDistrict){ color='#94a3b8'; sz=6; }
-    else { color='#d1d5db'; sz=5; }
-    
-    L.circleMarker([r.school.lat,r.school.lng],{
-      radius:sz,fillColor:color,color:'#fff',weight:2,fillOpacity:0.9
+    if (r.inCatchment) {
+      if (i === 0) { color = '#f59e0b'; sz = 11; }
+      else if (i === 1) { color = '#2563eb'; sz = 10; }
+      else if (i === 2) { color = '#10b981'; sz = 9; }
+      else { color = '#10b981'; sz = 7; }
+    } else {
+      color = '#d1d5db'; sz = 5;
+    }
+
+    L.circleMarker([r.school.lat, r.school.lng], {
+      radius: sz, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.9
     }).addTo(resultsMap).bindPopup(
-      '<div style="font-family:-apple-system,sans-serif;font-size:13px;line-height:1.4;">'+
-      '<b style="color:#1f2937;">#'+(i+1)+' '+r.school.name+'</b><br>'+
-      '<span style="color:#6b7280;">'+r.pct+'% '+t('match')+(r.distKm?' · '+Math.round(r.distKm*1000)+'m':'')+'</span><br>'+
-      '<span style="color:'+(r.sameDistrict?'#065f46':'#991b1b')+';font-size:11px;">'+(r.sameDistrict?t('same_district'):t('diff_district'))+'</span>'+
+      '<div style="font-family:-apple-system,sans-serif;font-size:13px;line-height:1.4;">' +
+      '<b style="color:#1f2937;">#'+(i+1)+' '+r.school.name+'</b><br>' +
+      '<span style="color:#6b7280;">'+r.pct+'% '+t('match')+(r.distKm?' · '+Math.round(r.distKm*1000)+'m':'')+'</span><br>' +
+      '<span style="color:'+(r.inCatchment?'#065f46':'#6b7280')+';font-size:11px;">'+(r.inCatchment?t('pts_30_short'):t('pts_10_short'))+'</span>' +
       '</div>'
     );
-    bounds.extend([r.school.lat,r.school.lng]);
+    bounds.extend([r.school.lat, r.school.lng]);
   });
-  if(userLat&&userLng){
-    var nearBounds=L.latLngBounds([[userLat,userLng]]);
-    scoredResults.slice(0,3).forEach(function(r){ nearBounds.extend([r.school.lat,r.school.lng]); });
+
+  // Fit map
+  if (userLat && userLng) {
+    var nearBounds = L.latLngBounds([[userLat, userLng]]);
+    var topN = scoredResults.slice(0, 5);
+    topN.forEach(function(r) {
+      if (r.school.lat && r.school.lng) nearBounds.extend([r.school.lat, r.school.lng]);
+    });
     resultsMap.fitBounds(nearBounds.pad(0.2));
-  } else if(bounds.isValid()){
+  } else if (bounds.isValid()) {
     resultsMap.fitBounds(bounds.pad(0.15));
   }
-  var list=document.getElementById('results-list');
-  var html='';
-    var showCount = 10;
-  scoredResults.forEach(function(r,i){
-    if(i >= showCount) return;
-    var rank=i+1;
-    var rankClass=rank===1?'rank-1':(rank===2?'rank-2':(rank===3?'rank-3':'rank-other'));
-    var scoreClass=r.pct>=75?'score-high':(r.pct>=50?'score-med':'score-low');
 
-    var tags='<span class="tag tag-blue">CEIP</span>';
+  // Render school cards
+  var list = document.getElementById('results-list');
+  var html = '';
+  var showCount = 10;
 
-    if(userDistrict){
-      if(r.sameDistrict){
-        tags+='<span class="tag tag-green">'+t('same_district_pts')+'</span>';
+  scoredResults.forEach(function(r, i) {
+    if (i >= showCount) return;
+    var rank = i + 1;
+    var rankClass = rank===1 ? 'rank-1' : (rank===2 ? 'rank-2' : (rank===3 ? 'rank-3' : 'rank-other'));
+    var scoreClass = r.pct>=75 ? 'score-high' : (r.pct>=50 ? 'score-med' : 'score-low');
+    var catchmentClass = r.inCatchment ? 'is-catchment' : '';
+
+    // Tags
+    var tags = '<span class="tag tag-blue">CEIP</span>';
+    if (catchmentSchoolCodes.length > 0) {
+      if (r.inCatchment) {
+        tags += '<span class="tag tag-green">' + t('pts_30') + '</span>';
       } else {
-        tags+='<span class="tag tag-yellow">'+t('diff_district_pts')+'</span>';
+        tags += '<span class="tag tag-yellow">' + t('pts_10') + '</span>';
       }
     }
 
-    var distHtml=r.distKm!==null
-      ?'<span>📏 '+Math.round(r.distKm*1000)+'m · ~'+r.walkMin+' min '+t('walk')+'</span>'
-      :'<span style="color:var(--gray-400)">📍 '+t('no_location')+'</span>';
+    // Distance
+    var distHtml = r.distKm !== null
+      ? '<span>📏 ' + Math.round(r.distKm*1000) + 'm · ~' + r.walkMin + ' min ' + t('walk') + '</span>'
+      : '<span style="color:var(--gray-400)">📍 ' + t('no_location') + '</span>';
 
-        var proxHtml='';
+    // Pedagogy bar
+    var pedPct = (r.school.pedagogy/5)*100;
+    var pedBar = '<div class="pedagogy-bar"><span class="pedagogy-label">📚</span><div class="pedagogy-bar-track"><div class="pedagogy-bar-fill" style="width:'+pedPct+'%"></div></div><span class="pedagogy-label">🌱</span></div>';
 
-    var pedPct=(r.school.pedagogy/5)*100;
-    var pedBar='<div class="pedagogy-bar"><span class="pedagogy-label">📚</span><div class="pedagogy-bar-track"><div class="pedagogy-bar-fill" style="width:'+pedPct+'%"></div></div><span class="pedagogy-label">🌱</span></div>';
+    // Facilities bar
+    var facPct = (r.school.facilities/5)*100;
+    var facBar = '<div class="pedagogy-bar"><span class="pedagogy-label">🧱</span><div class="pedagogy-bar-track"><div class="pedagogy-bar-fill" style="width:'+facPct+'%;background:linear-gradient(90deg,#f59e0b,#10b981)"></div></div><span class="pedagogy-label">✨</span></div>';
 
-    var facPct=(r.school.facilities/5)*100;
-    var facBar='<div class="pedagogy-bar"><span class="pedagogy-label">🧱</span><div class="pedagogy-bar-track"><div class="pedagogy-bar-fill" style="width:'+facPct+'%;background:linear-gradient(90deg,#f59e0b,#10b981)"></div></div><span class="pedagogy-label">✨</span></div>';
+    // Notes & website
+    var notes = r.school['notes_'+currentLang] || r.school.notes_en;
+    var webLabel = currentLang==='ca' ? "Web de l'escola" : (currentLang==='es' ? 'Web de la escuela' : 'School website');
+    var websiteLink = r.school.website ? '<a href="'+(r.school.website.startsWith('http')?r.school.website:'https://'+r.school.website)+'" target="_blank" style="color:var(--primary);font-size:0.8rem">🔗 '+webLabel+'</a>' : '';
 
-    var notes=r.school['notes_'+currentLang]||r.school.notes_en;
-    var webLabel=currentLang==='ca'?"Web de l'escola":(currentLang==='es'?'Web de la escuela':'School website');
-    var websiteLink=r.school.website?'<a href="'+r.school.website+'" target="_blank" style="color:var(--primary);font-size:0.8rem">🔗 '+webLabel+'</a>':'';
-
-    html+='<div class="school-card">';
-    html+='<div class="school-rank '+rankClass+'">'+rank+'</div>';
-    html+='<div class="school-info">';
-    html+='<h3>'+r.school.name+'</h3>';
-    html+='<div class="school-address">'+r.school.address+(r.school.district?' · '+r.school.district:'')+'</div>';
-    html+='<div class="school-tags">'+tags+' '+proxHtml+'</div>';
-    html+='<div class="school-meta">'+distHtml+'</div>';
-    html+=pedBar;
-    html+=facBar;
-    html+='<button class="details-toggle" onclick="toggleDetails(this)" data-show="'+t('details_show')+'" data-hide="'+t('details_hide')+'">'+t('details_show')+'</button>';
-    html+='<div class="school-details"><p>'+notes+'</p><div style="margin-top:0.5rem">'+websiteLink+'</div></div>';
-    html+='</div>';
-    html+='<div class="school-score"><div class="score-circle '+scoreClass+'">'+r.pct+'%</div><div class="score-label">'+t('match')+'</div></div>';
-    html+='</div>';
+    html += '<div class="school-card '+catchmentClass+'">';
+    html += '<div class="school-rank '+rankClass+'">'+rank+'</div>';
+    html += '<div class="school-info">';
+    html += '<h3>'+r.school.name+'</h3>';
+    html += '<div class="school-address">'+r.school.address+(r.school.district?' · '+r.school.district:'')+'</div>';
+    html += '<div class="school-tags">'+tags+'</div>';
+    html += '<div class="school-meta">'+distHtml+'</div>';
+    html += pedBar;
+    html += facBar;
+    html += '<button class="details-toggle" onclick="toggleDetails(this)" data-show="'+t('details_show')+'" data-hide="'+t('details_hide')+'">'+t('details_show')+'</button>';
+    html += '<div class="school-details"><p>'+notes+'</p><div style="margin-top:0.5rem">'+websiteLink+'</div></div>';
+    html += '</div>';
+    html += '<div class="school-score"><div class="score-circle '+scoreClass+'">'+r.pct+'%</div><div class="score-label">'+t('match')+'</div></div>';
+    html += '</div>';
   });
 
-  list.innerHTML=html;
+  list.innerHTML = html;
 }
 
-function showMore(){
-  window.showAllResults=true;
-  renderResults();
+function toggleDetails(btn) {
+  var d = btn.nextElementSibling;
+  if (d.classList.contains('open')) { d.classList.remove('open'); btn.textContent = btn.dataset.show; }
+  else { d.classList.add('open'); btn.textContent = btn.dataset.hide; }
 }
 
-function toggleDetails(btn){
-  var d=btn.nextElementSibling;
-  if(d.classList.contains('open')){d.classList.remove('open');btn.textContent=btn.dataset.show;}
-  else{d.classList.add('open');btn.textContent=btn.dataset.hide;}
-}
-
-function restart(){
-  window.showAllResults=false;
-  Object.keys(answers).forEach(function(k){delete answers[k];});
-  currentQuestion=0;scoredResults=[];
+function restart() {
+  Object.keys(answers).forEach(function(k) { delete answers[k]; });
+  currentQuestion = 0; scoredResults = [];
+  clearStreet();
   showScreen('screen-welcome');
 }
 
-document.getElementById('address-input').addEventListener('keypress',function(e){
-  if(e.key==='Enter') geocodeAddress();
-});
+// ========== INIT ==========
+
 setLang('en');
 loadSchoolData();
 </script>
