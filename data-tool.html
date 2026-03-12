@@ -374,13 +374,15 @@ async function runScrape() {
     try {
       var r2 = await fetch(CWC_BASE + '/ca/projecte_educatiu/' + school.CODI);
       var d2 = await r2.json();
-      if (d2 && d2[0]) {
-        detail.trets_identitat = stripHTML(d2[0].TRETS_IDENTITAT || '');
-        detail.pilars_pedagogics = stripHTML(d2[0].PILARS_PEDAGOGICS || '');
-        detail.objectius = stripHTML(d2[0].OBJECTIUS_EDUCATIUS_PRIORITARIS || '');
-        detail.criteris = stripHTML(d2[0].CRITERIS_ORGANITZCIO_PEDAGOGICA || '');
-        detail.projectes = stripHTML(d2[0].PROJECTES_I_ACTIVITATS_DESTACADES || '');
-        detail.ambits = stripHTML(d2[0].AMBITS_PARTICIPACIO || '');
+      // API returns object directly, not array
+      var proj = Array.isArray(d2) ? d2[0] : d2;
+      if (proj) {
+        detail.trets_identitat = stripHTML(proj.TRETS_IDENTITAT || '');
+        detail.pilars_pedagogics = stripHTML(proj.PILARS_PEDAGOGICS || '');
+        detail.objectius = stripHTML(proj.OBJECTIUS_EDUCATIUS_PRIORITARIS || '');
+        detail.criteris = stripHTML(proj.CRITERIS_ORGANITZCIO_PEDAGOGICA || '');
+        detail.projectes = stripHTML(proj.PROJECTES_I_ACTIVITATS_DESTACADES || '');
+        detail.ambits = stripHTML(proj.AMBITS_PARTICIPACIO || '');
       }
     } catch(e) { detail.error_project = e.message; }
 
@@ -395,10 +397,11 @@ async function runScrape() {
     try {
       var r4 = await fetch(CWC_BASE + '/quotes/' + school.CODI);
       var d4 = await r4.json();
-      if (d4 && d4[0]) {
-        detail.fee_p3 = d4[0].P3 || '';
-        detail.fee_ep1 = d4[0].EP1 || '';
-        detail.fee_menjador = d4[0].MENJADOR || '';
+      var fees = Array.isArray(d4) ? d4[0] : d4;
+      if (fees) {
+        detail.fee_p3 = fees.P3 || '';
+        detail.fee_ep1 = fees.EP1 || '';
+        detail.fee_menjador = fees.MENJADOR || '';
       }
     } catch(e) { detail.error_fees = e.message; }
 
