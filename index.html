@@ -845,8 +845,8 @@ async function lookupCatchment() {
 
   var status = document.getElementById('geocode-status');
   var summary = document.getElementById('catchment-summary');
-  status.className = 'geocode-status loading';
-  status.textContent = t('geocode_loading');
+    status.className = 'geocode-status success';
+    status.textContent = '✅ ' + selectedStreetName + ' ' + number;
   summary.classList.remove('visible');
 
   try {
@@ -881,8 +881,7 @@ async function lookupCatchment() {
     status.className = 'geocode-status success';
     status.textContent = t('catchment_found');
 
-    summary.classList.add('visible');
-    summary.innerHTML = '<div class="catchment-title">🎯 ' + t('catchment_found') + '</div>';
+    // summary removed — address shown in status
 
     document.getElementById('start-btn').disabled = false;
     showMinimap();
