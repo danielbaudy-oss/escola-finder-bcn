@@ -213,14 +213,19 @@
     font-size: 0.75rem; font-weight: 700; color: var(--gray-400);
     text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.6rem;
   }
-  .answers-summary-grid { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-  .answers-summary-chip {
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    padding: 0.3rem 0.65rem; background: var(--gray-50);
-    border: 1px solid var(--gray-200); border-radius: 100px;
-    font-size: 0.78rem; color: var(--gray-700);
+  .answers-summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; }
+  .answers-summary-item {
+    display: flex; flex-direction: column; gap: 0.15rem;
+    padding: 0.5rem 0.7rem; background: var(--gray-50);
+    border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
   }
-  .answers-summary-chip .chip-label { font-weight: 600; }
+  .answers-summary-item .item-header {
+    font-size: 0.65rem; font-weight: 700; color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .answers-summary-item .item-value {
+    font-size: 0.82rem; font-weight: 600; color: var(--gray-800);
+  }
   #results-map {
     height: 250px; border-radius: var(--radius); margin-bottom: 1.25rem;
     box-shadow: var(--shadow-md); border: 2px solid var(--gray-200); overflow: hidden;
@@ -1060,40 +1065,43 @@ function prevQuestion() {
 // ========== ANSWERS SUMMARY ==========
 
 function renderAnswersSummary() {
-  var chips = [];
+  var items = [];
 
   var distLabels = { close:'🏠 <10 min', medium:'🚶 <20 min', far:'🚌 Flexible' };
   if (answers.distance_pref) {
-    chips.push({ label: t('pref_distance'), value: distLabels[answers.distance_pref] || '' });
+    items.push({ label: t('pref_distance'), value: distLabels[answers.distance_pref] || '' });
   }
 
   var pedLabels = { 1:'📚 ' + t('q1_o1'), 2:'⚖️ ' + t('q1_o2'), 3:'🚀 ' + t('q1_o3') };
   if (answers.pedagogy_pref !== undefined) {
-    chips.push({ label: t('pref_pedagogy'), value: pedLabels[answers.pedagogy_pref] || '' });
+    items.push({ label: t('pref_pedagogy'), value: pedLabels[answers.pedagogy_pref] || '' });
   }
 
   var facLabels = { high:'✨ ' + t('q6_o1'), medium:'🏫 ' + t('q6_o2'), low:'🧱 ' + t('q6_o3') };
   if (answers.facilities_pref) {
-    chips.push({ label: t('pref_facilities'), value: facLabels[answers.facilities_pref] || '' });
+    items.push({ label: t('pref_facilities'), value: facLabels[answers.facilities_pref] || '' });
   }
 
   var outLabels = { high:'🌳 ' + t('q4_o1'), medium:'🌤️ ' + t('q4_o2'), low:'🏢 ' + t('q4_o3') };
   if (answers.outdoor_pref) {
-    chips.push({ label: t('pref_outdoor'), value: outLabels[answers.outdoor_pref] || '' });
+    items.push({ label: t('pref_outdoor'), value: outLabels[answers.outdoor_pref] || '' });
   }
 
   var artLabels = { high:'🎨 ' + t('q5_o1'), medium:'🖼️ ' + t('q5_o2'), low:'📐 ' + t('q5_o3') };
   if (answers.arts_pref) {
-    chips.push({ label: t('pref_arts'), value: artLabels[answers.arts_pref] || '' });
+    items.push({ label: t('pref_arts'), value: artLabels[answers.arts_pref] || '' });
   }
 
-  if (chips.length === 0) { document.getElementById('answers-summary').innerHTML = ''; return; }
+  if (items.length === 0) { document.getElementById('answers-summary').innerHTML = ''; return; }
 
   var html = '<div class="answers-summary-card">';
   html += '<div class="answers-summary-title">' + t('pref_summary') + '</div>';
   html += '<div class="answers-summary-grid">';
-  chips.forEach(function(c) {
-    html += '<div class="answers-summary-chip"><span class="chip-label">' + escapeAttr(c.value) + '</span></div>';
+  items.forEach(function(c) {
+    html += '<div class="answers-summary-item">';
+    html += '<span class="item-header">' + escapeAttr(c.label) + '</span>';
+    html += '<span class="item-value">' + escapeAttr(c.value) + '</span>';
+    html += '</div>';
   });
   html += '</div></div>';
   document.getElementById('answers-summary').innerHTML = html;
