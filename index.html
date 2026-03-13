@@ -639,6 +639,7 @@ var i18n = {
     pref_distance:"Distance", pref_pedagogy:"Teaching Style",
     pref_facilities:"Facilities", pref_outdoor:"Outdoor Space", pref_arts:"Arts & Culture",
     loading_data:"Loading school data...",
+    show_more:"Show {n} more schools ▾",
     q1_title:"What teaching approach do you prefer?",
     q1_desc:"From structured/traditional to project-based/innovative.",
     q1_o1:"Traditional", q1_o1_sub:"Clear routines, teacher-led, textbook-based",
@@ -687,6 +688,7 @@ var i18n = {
     pref_distance:"Distancia", pref_pedagogy:"Estilo Pedagógico",
     pref_facilities:"Instalaciones", pref_outdoor:"Espacio Exterior", pref_arts:"Artes y Cultura",
     loading_data:"Cargando datos de escuelas...",
+    show_more:"Mostrar {n} escuelas más ▾",
     q1_title:"¿Qué enfoque pedagógico prefieres?", q1_desc:"Desde tradicional hasta innovador.",
     q1_o1:"Tradicional", q1_o1_sub:"Rutinas claras, profesor guía, libros de texto",
     q1_o2:"Híbrido", q1_o2_sub:"Mezcla de clases estructuradas y proyectos creativos",
@@ -732,6 +734,7 @@ var i18n = {
     pref_distance:"Distància", pref_pedagogy:"Estil Pedagògic",
     pref_facilities:"Instal·lacions", pref_outdoor:"Espai Exterior", pref_arts:"Arts i Cultura",
     loading_data:"Carregant dades d'escoles...",
+    show_more:"Mostrar {n} escoles més ▾",
     q1_title:"Quin enfocament pedagògic prefereixes?", q1_desc:"Des de tradicional fins a innovador.",
     q1_o1:"Tradicional", q1_o1_sub:"Rutines clares, professor guia, llibres de text",
     q1_o2:"Híbrid", q1_o2_sub:"Mescla de classes estructurades i projectes creatius",
@@ -1276,10 +1279,12 @@ function renderResults() {
 
   var list = document.getElementById('results-list');
   var html = '';
-  var showCount = 10;
+  var initialCount = 3;
+  var maxCount = 10;
 
   scoredResults.forEach(function(r, i) {
-    if (i >= showCount) return;
+    if (i >= maxCount) return;
+    var hiddenClass = i >= initialCount ? ' style="display:none;" data-extra-result' : '';
     var rank = i + 1;
     var rankClass = rank===1 ? 'rank-1' : (rank===2 ? 'rank-2' : (rank===3 ? 'rank-3' : 'rank-other'));
     var scoreClass = r.pct>=75 ? 'score-high' : (r.pct>=50 ? 'score-med' : 'score-low');
@@ -1304,8 +1309,7 @@ function renderResults() {
       ? '<a href="'+(r.school.website.startsWith('http')?escapeAttr(r.school.website):'https://'+escapeAttr(r.school.website))+'" target="_blank" rel="noopener" style="color:var(--primary);font-size:0.8rem">🔗 '+webLabel+'</a>'
       : '';
 
-    html += '<div class="school-card '+catchmentClass+'">';
-    html += '<div class="school-rank '+rankClass+'">'+rank+'</div>';
+    html += '<div class="school-card '+catchmentClass+'"' + hiddenClass + '>';    html += '<div class="school-rank '+rankClass+'">'+rank+'</div>';
     html += '<div class="school-info">';
     html += '<h3>'+escapeAttr(r.school.name)+'</h3>';
     html += '<div class="school-address">'+escapeAttr(r.school.address)+(r.school.district?' · '+escapeAttr(r.school.district):'')+'</div>';
@@ -1318,6 +1322,14 @@ function renderResults() {
     html += '</div>';
   });
 
+    if (scoredResults.length > initialCount) {
+    var remaining = Math.min(maxCount, scoredResults.length) - initialCount;
+    html += '<div id="show-more-wrap" style="text-align:center; margin-top:0.5rem;">';
+    html += '<button class="btn btn-secondary" onclick="showMoreResults()" id="show-more-btn" style="width:auto;">';
+    html += t('show_more').replace('{n}', remaining);
+    html += '</button></div>';
+  }
+
   list.innerHTML = html;
 }
 
@@ -1325,6 +1337,14 @@ function toggleDetails(btn) {
   var d = btn.nextElementSibling;
   if (d.classList.contains('open')) { d.classList.remove('open'); btn.textContent = btn.dataset.show; }
   else { d.classList.add('open'); btn.textContent = btn.dataset.hide; }
+}
+
+function showMoreResults() {
+  document.querySelectorAll('[data-extra-result]').forEach(function(el) {
+    el.style.display = '';
+  });
+  var wrap = document.getElementById('show-more-wrap');
+  if (wrap) wrap.remove();
 }
 
 function restart() {
