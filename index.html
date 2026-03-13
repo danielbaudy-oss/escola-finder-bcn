@@ -165,10 +165,14 @@
     font-size: 0.85rem; margin-top: 0.75rem; cursor: pointer;
     text-decoration: underline; padding: 0.5rem;
   }
-  #minimap {
-    height: 180px; border-radius: var(--radius-sm); margin-bottom: 0.75rem;
-    display: none; border: 2px solid var(--gray-200); overflow: hidden;
-  }
+#minimap {
+  height: 180px; border-radius: var(--radius-sm); margin-bottom: 0.75rem;
+  border: 2px solid var(--gray-200); overflow: hidden;
+  visibility: hidden; max-height: 0; transition: max-height 0.3s ease;
+}
+#minimap.visible {
+  visibility: visible; max-height: 180px;
+}
   .progress-bar-container {
     background: var(--gray-200); border-radius: 100px;
     height: 6px; margin-bottom: 1.25rem; overflow: hidden;
@@ -875,7 +879,7 @@ function clearStreet() {
   document.getElementById('street-input').value = '';
   document.getElementById('geocode-status').className = 'geocode-status';
   document.getElementById('geocode-status').textContent = '';
-  document.getElementById('minimap').style.display = 'none';
+    document.getElementById('minimap').classList.remove('visible');
   document.getElementById('start-btn').disabled = true;
   setSearchBtnLoading(false);
 }
@@ -975,10 +979,8 @@ async function geocodeForLatLng(query) {
 }
 
 function showMinimap() {
-  var scrollY = window.scrollY || window.pageYOffset;
-
   var mapDiv = document.getElementById('minimap');
-  mapDiv.style.display = 'block';
+  mapDiv.classList.add('visible');
 
   var centerLat = userLat || 41.399;
   var centerLng = userLng || 2.196;
@@ -987,6 +989,8 @@ function showMinimap() {
   if (!miniMap) {
     miniMap = createStyledMap('minimap', [centerLat, centerLng], zoom);
     miniMap.scrollWheelZoom.disable();
+    // Prevent Leaflet from stealing focus/scroll
+    miniMap.getContainer().addEventListener('focus', function(e) { e.preventDefault(); }, true);
   } else {
     miniMap.setView([centerLat, centerLng], zoom, { animate: false });
   }
@@ -1005,8 +1009,8 @@ function showMinimap() {
     miniMap.setView([userLat, userLng], 16, { animate: false });
   }
 
-  // Restore scroll position — Leaflet map init can steal focus
-  window.scrollTo(0, scrollY);
+  // Leaflet needs a size recalc after visibility change
+  setTimeout(function() { miniMap.invalidateSize({ animate: false }); }, 350);
 }
 
 function skipLocation() {
@@ -1050,9 +1054,11 @@ var questions = [
 ];
 
 function showScreen(id) {
+  var current = document.querySelector('.screen.active');
+  var isNewScreen = !current || current.id !== id;
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById(id).classList.add('active');
-  window.scrollTo({top:0, behavior:'smooth'});
+  if (isNewScreen) window.scrollTo({top:0, behavior:'smooth'});
 }
 
 function goToQuiz() {
