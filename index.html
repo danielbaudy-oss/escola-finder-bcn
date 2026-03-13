@@ -215,10 +215,18 @@
     background: white; border-radius: var(--radius); padding: 1rem 1.25rem;
     box-shadow: var(--shadow); margin-bottom: 1rem; border: 1px solid var(--gray-100);
   }
-  .answers-summary-title {
+    .answers-summary-title {
     font-size: 0.75rem; font-weight: 700; color: var(--gray-400);
     text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.6rem;
   }
+  .answers-summary-toggle {
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; font-size: 0.75rem; font-weight: 700;
+    color: var(--gray-400); text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 0.1rem 0;
+  }
+  .answers-summary-toggle:hover { color: var(--primary); }
+  .answers-toggle-icon { font-size: 0.85rem; transition: transform 0.2s; }
   .answers-summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; }
   .answers-summary-item {
     display: flex; flex-direction: column; gap: 0.15rem;
@@ -1108,8 +1116,11 @@ function renderAnswersSummary() {
   if (items.length === 0) { document.getElementById('answers-summary').innerHTML = ''; return; }
 
   var html = '<div class="answers-summary-card">';
-  html += '<div class="answers-summary-title">' + t('pref_summary') + '</div>';
-  html += '<div class="answers-summary-grid">';
+  html += '<div class="answers-summary-toggle" onclick="togglePreferences(this)">';
+  html += '<span>' + t('pref_summary') + '</span>';
+  html += '<span class="answers-toggle-icon">▾</span>';
+  html += '</div>';
+  html += '<div class="answers-summary-grid" style="display:none;">';
   items.forEach(function(c) {
     html += '<div class="answers-summary-item">';
     html += '<span class="item-header">' + escapeAttr(c.label) + '</span>';
@@ -1374,6 +1385,18 @@ function showMoreResults() {
     extras.forEach(function(el) { el.style.display = ''; });
     document.getElementById('show-more-btn').dataset.expanded = 'true';
     document.getElementById('show-more-btn').textContent = t('show_less');
+  }
+}
+
+function togglePreferences(el) {
+  var grid = el.nextElementSibling;
+  var icon = el.querySelector('.answers-toggle-icon');
+  if (grid.style.display === 'none') {
+    grid.style.display = '';
+    icon.textContent = '▴';
+  } else {
+    grid.style.display = 'none';
+    icon.textContent = '▾';
   }
 }
 
