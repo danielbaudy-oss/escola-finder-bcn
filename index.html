@@ -640,6 +640,7 @@ var i18n = {
     pref_facilities:"Facilities", pref_outdoor:"Outdoor Space", pref_arts:"Arts & Culture",
     loading_data:"Loading school data...",
     show_more:"Show {n} more schools ▾",
+    show_less:"Show less ▴",
     q1_title:"What teaching approach do you prefer?",
     q1_desc:"From structured/traditional to project-based/innovative.",
     q1_o1:"Traditional", q1_o1_sub:"Clear routines, teacher-led, textbook-based",
@@ -689,6 +690,7 @@ var i18n = {
     pref_facilities:"Instalaciones", pref_outdoor:"Espacio Exterior", pref_arts:"Artes y Cultura",
     loading_data:"Cargando datos de escuelas...",
     show_more:"Mostrar {n} escuelas más ▾",
+    show_less:"Mostrar menos ▴",
     q1_title:"¿Qué enfoque pedagógico prefieres?", q1_desc:"Desde tradicional hasta innovador.",
     q1_o1:"Tradicional", q1_o1_sub:"Rutinas claras, profesor guía, libros de texto",
     q1_o2:"Híbrido", q1_o2_sub:"Mezcla de clases estructuradas y proyectos creativos",
@@ -735,6 +737,7 @@ var i18n = {
     pref_facilities:"Instal·lacions", pref_outdoor:"Espai Exterior", pref_arts:"Arts i Cultura",
     loading_data:"Carregant dades d'escoles...",
     show_more:"Mostrar {n} escoles més ▾",
+    show_less:"Mostrar menys ▴",
     q1_title:"Quin enfocament pedagògic prefereixes?", q1_desc:"Des de tradicional fins a innovador.",
     q1_o1:"Tradicional", q1_o1_sub:"Rutines clares, professor guia, llibres de text",
     q1_o2:"Híbrid", q1_o2_sub:"Mescla de classes estructurades i projectes creatius",
@@ -1340,11 +1343,19 @@ function toggleDetails(btn) {
 }
 
 function showMoreResults() {
-  document.querySelectorAll('[data-extra-result]').forEach(function(el) {
-    el.style.display = '';
-  });
-  var wrap = document.getElementById('show-more-wrap');
-  if (wrap) wrap.remove();
+  var expanded = document.getElementById('show-more-btn').dataset.expanded === 'true';
+  var extras = document.querySelectorAll('[data-extra-result]');
+
+  if (expanded) {
+    extras.forEach(function(el) { el.style.display = 'none'; });
+    document.getElementById('show-more-btn').dataset.expanded = 'false';
+    document.getElementById('show-more-btn').textContent = t('show_more').replace('{n}', extras.length);
+    document.getElementById('results-list').scrollIntoView({ behavior: 'smooth' });
+  } else {
+    extras.forEach(function(el) { el.style.display = ''; });
+    document.getElementById('show-more-btn').dataset.expanded = 'true';
+    document.getElementById('show-more-btn').textContent = t('show_less');
+  }
 }
 
 function restart() {
