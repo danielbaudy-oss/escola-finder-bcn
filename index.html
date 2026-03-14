@@ -280,12 +280,11 @@ body {
   .score-circle {
     width: 50px; height: 50px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; font-weight: 800; margin-bottom: 0.15rem;
+    font-size: 0.95rem; font-weight: 800; margin-bottom: 0.15rem;
   }
   .score-high { background: var(--success-light); color: #065f46; }
   .score-med { background: var(--accent-light); color: #92400e; }
   .score-low { background: var(--gray-100); color: var(--gray-500); }
-  .score-label { font-size: 0.6rem; color: var(--gray-400); font-weight: 600; text-transform: uppercase; }
   .school-details {
     display: none; margin-top: 0.6rem; padding-top: 0.6rem;
     border-top: 1px solid var(--gray-100); font-size: 0.82rem;
@@ -1397,8 +1396,8 @@ function renderResults() {
     html += '<button class="details-toggle" onclick="toggleDetails(this)" data-show="'+t('details_show')+'" data-hide="'+t('details_hide')+'">'+t('details_show')+'</button>';
     html += '<div class="school-details"><p>'+escapeAttr(notes)+'</p><div style="margin-top:0.5rem">'+websiteLink+'</div></div>';
     html += '</div>';
-    html += '<div class="school-score"><div class="score-circle '+scoreClass+'">'+r.pct+'%</div><div class="score-label">'+t('match')+'</div></div>';
-    html += '</div>';
+    html += '<div class="school-score"><div class="score-circle '+scoreClass+'">'+r.pct+'%</div></div>';
+        html += '</div>';
   });
 
     if (scoredResults.length > initialCount) {
